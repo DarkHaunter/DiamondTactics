@@ -93,56 +93,77 @@ void main()
 	int totalBlocks = chunks.length * CHUNK_SIZE * CHUNK_SIZE * size.y;
 	int totalDiamonds = diamonds.length;
 
-	struct StrategyResult { int blocksSeen, blocksMined, diamondsSeen; }
+	struct StrategyResult { double blocksSeenRatio, blocksMinedRatio, diamondsSeenRatio; }
 
-	StrategyResult testStrategy(STRATEGY strategy)
+	StrategyResult testStrategy(STRATEGY strategy, int xtile, int ytile, int ztile)
 	{
 		bool seen[] = new bool[diamonds.length];
 		StrategyResult r;
 
-		void checkDiamond(int x, int y, int z)
-		{
-			int id = getDiamondAt(x, y, z);
-			if (id>=0 && !seen[id])
-			{
-				seen[id] = true;
-				r.diamondsSeen++;
-				checkDiamond(x-1, y, z);
-				checkDiamond(x+1, y, z);
-				checkDiamond(x, y-1, z);
-				checkDiamond(x, y+1, z);
-				checkDiamond(x, y, z-1);
-				checkDiamond(x, y, z+1);
-			}
-		}
+		int probes = xtile*ytile*ztile;
+		assert(probes > 0);
 
-		foreach (ref c; chunks)
-			foreach (cx; 0..CHUNK_SIZE)
-				foreach (cz; 0..CHUNK_SIZE)
+		int diamondsSeen;
+
+		foreach (int xshift; 0..xtile)
+			foreach (int yshift; 0..ytile)
+				foreach (int zshift; 0..ztile)
 				{
-					int x = c.x * CHUNK_SIZE + cx;
-					int z = c.z * CHUNK_SIZE + cz;
-					foreach (y; minDiamond.y..maxDiamond.y+1)
+					seen[] = false;
+
+					void checkDiamond(int x, int y, int z)
 					{
-					    if (strategy(x, y, z))
-					    {
-					    	r.blocksMined++;
-					    	r.blocksSeen++;
-					    	checkDiamond(x, y, z);
-					    }
-					    else
-					    if (strategy(x-1, y, z)
-					     || strategy(x+1, y, z)
-					     || strategy(x, y-1, z)
-					     || strategy(x, y+1, z)
-					     || strategy(x, y, z-1)
-					     || strategy(x, y, z+1))
-					    {
-					     	r.blocksSeen++;
-					     	checkDiamond(x, y, z);
-					    }
+						int id = getDiamondAt(x, y, z);
+						if (id>=0 && !seen[id])
+						{
+							seen[id] = true;
+							diamondsSeen++;
+							checkDiamond(x-1, y, z);
+							checkDiamond(x+1, y, z);
+							checkDiamond(x, y-1, z);
+							checkDiamond(x, y+1, z);
+							checkDiamond(x, y, z-1);
+							checkDiamond(x, y, z+1);
+						}
+					}
+
+					foreach (ref d; diamonds)
+					{
+						int x = d.x + xshift;
+						int y = d.y + yshift;
+						int z = d.z + zshift;
+
+						if (strategy(x, y, z)
+						 || strategy(x-1, y, z)
+						 || strategy(x+1, y, z)
+						 || strategy(x, y-1, z)
+						 || strategy(x, y+1, z)
+						 || strategy(x, y, z-1)
+						 || strategy(x, y, z+1))
+							checkDiamond(d.x, d.y, d.z);
 					}
 				}
+
+		int blocksMined, blocksSeen;
+
+		foreach (int x; 0..xtile)
+			foreach (int y; 2..2+ytile)
+				foreach (int z; 0..ztile)
+					if (strategy(x, y, z))
+						blocksMined++, blocksSeen++;
+					else
+					if (strategy(x-1, y, z)
+					 || strategy(x+1, y, z)
+					 || strategy(x, y-1, z)
+					 || strategy(x, y+1, z)
+					 || strategy(x, y, z-1)
+					 || strategy(x, y, z+1))
+						blocksSeen++;
+
+		r.blocksSeenRatio = cast(double)blocksSeen / probes;
+		r.blocksMinedRatio = cast(double)blocksMined / probes;
+		r.diamondsSeenRatio = cast(double)diamondsSeen / probes / diamonds.length;
+
 		return r;
 	}
 
@@ -152,20 +173,20 @@ void main()
 	{
 		writefln("%-20s%15.2f%%%15.2f%%%15.2f%%%16.2f",
 			name,
-			r.blocksSeen  *100.0/totalBlocks,
-			r.blocksMined *100.0/totalBlocks,
-			r.diamondsSeen*100.0/totalDiamonds,
-			cast(float)r.blocksMined/r.diamondsSeen);
+			r.blocksSeenRatio  *100.0,
+			r.blocksMinedRatio *100.0,
+			r.diamondsSeenRatio*100.0,
+			(totalBlocks * r.blocksMinedRatio) / (r.diamondsSeenRatio * diamonds.length));
 	}
 
-	printResults("Everything", testStrategy(function(int x, int y, int z) { return true; }));
+	printResults("Everything", testStrategy(function(int x, int y, int z) { return true; }, 1, 1, 1));
 
 	{
 		static int hi, vi, sl;
 		for (vi=2; vi<=7; vi++)
 			for (hi=2; hi<=16; hi++)
 				for (sl=0; sl<=hi/2; sl++)
-					printResults(format("Galleries[v%d,h%d,s%d]", vi, hi, sl), testStrategy(function(int z, int y, int x) { return y%vi<2 && floorMod(x, hi) == y/vi * sl % hi; }));
+					printResults(format("Galleries[v%d,h%d,s%d]", vi, hi, sl), testStrategy(function(int x, int y, int z) { return y%vi<2 && floorMod(x, hi) == y/vi * sl % hi; }, hi, vi, 1));
 	}
 }
 
