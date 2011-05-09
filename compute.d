@@ -146,25 +146,23 @@ void main()
 		return r;
 	}
 
-	writefln("%-16s%16s%16s%16s%16s", "Strategy", "Blocks seen", "Blocks mined", "Diamonds seen", "Work / diamond");
+	writefln("%-20s%16s%16s%16s%16s", "Strategy", "Blocks seen", "Blocks mined", "Diamonds seen", "Work / diamond");
 
 	void evaluateStrategy(string name, STRATEGY strategy)
 	{
 		auto r = testStrategy(strategy);
-		writefln("%-16s%15.2f%%%15.2f%%%15.2f%%%16.2f", name, r.blocksSeen*100.0/totalBlocks, r.blocksMined*100.0/totalBlocks, r.diamondsSeen*100.0/totalDiamonds, cast(float)r.blocksMined/r.diamondsSeen);
+		writefln("%-20s%15.2f%%%15.2f%%%15.2f%%%16.2f", name, r.blocksSeen*100.0/totalBlocks, r.blocksMined*100.0/totalBlocks, r.diamondsSeen*100.0/totalDiamonds, cast(float)r.blocksMined/r.diamondsSeen);
 	}
 
-	evaluateStrategy("Everything"   , function(int x, int y, int z) { return true;                          });
-	evaluateStrategy("Zebra"        , function(int x, int y, int z) { return floorMod(x, 3) == 2;           });
-	evaluateStrategy("Galleries"    , function(int x, int y, int z) { return floorMod(x, 4) == (y/2%2) * 2; });
-	evaluateStrategy("Galleries/6"  , function(int x, int y, int z) { return floorMod(x, 6) == (y/2%2) * 3; });
-	evaluateStrategy("Galleries/6s" , function(int x, int y, int z) { return floorMod(x, 6) == (y/2%3) * 2; });
-	evaluateStrategy("Galleries/8"  , function(int x, int y, int z) { return floorMod(x, 8) == (y/2%2) * 4; });
-	evaluateStrategy("Galleries/10" , function(int x, int y, int z) { return floorMod(x,10) == (y/2%2) * 5; });
-	evaluateStrategy("Galleries/12" , function(int x, int y, int z) { return floorMod(x,12) == (y/2%2) * 6; });
-	evaluateStrategy("Galleries/14" , function(int x, int y, int z) { return floorMod(x,14) == (y/2%2) * 7; });
-	evaluateStrategy("Galleries/16" , function(int x, int y, int z) { return floorMod(x,16) == (y/2%2) * 8; });
-	evaluateStrategy("Galleries/20" , function(int x, int y, int z) { return floorMod(x,20) == (y/2%2) *10; });
+	evaluateStrategy("Everything", function(int x, int y, int z) { return true; });
+
+	{
+		static int hi, vi, sl;
+		for (vi=2; vi<=7; vi++)
+			for (hi=2; hi<=16; hi++)
+				for (sl=0; sl<=hi/2; sl++)
+					evaluateStrategy(format("Galleries[v%d,h%d,s%d]", vi, hi, sl), function(int z, int y, int x) { return y%vi<2 && floorMod(x, hi) == y/vi * sl % hi; });
+	}
 }
 
 auto floorMod(T)(T a, T b) { auto m = a%b; return m>=0 ? m : m + b; }
