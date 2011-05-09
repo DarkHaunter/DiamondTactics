@@ -148,20 +148,24 @@ void main()
 
 	writefln("%-20s%16s%16s%16s%16s", "Strategy", "Blocks seen", "Blocks mined", "Diamonds seen", "Work / diamond");
 
-	void evaluateStrategy(string name, STRATEGY strategy)
+	void printResults(string name, StrategyResult r)
 	{
-		auto r = testStrategy(strategy);
-		writefln("%-20s%15.2f%%%15.2f%%%15.2f%%%16.2f", name, r.blocksSeen*100.0/totalBlocks, r.blocksMined*100.0/totalBlocks, r.diamondsSeen*100.0/totalDiamonds, cast(float)r.blocksMined/r.diamondsSeen);
+		writefln("%-20s%15.2f%%%15.2f%%%15.2f%%%16.2f",
+			name,
+			r.blocksSeen  *100.0/totalBlocks,
+			r.blocksMined *100.0/totalBlocks,
+			r.diamondsSeen*100.0/totalDiamonds,
+			cast(float)r.blocksMined/r.diamondsSeen);
 	}
 
-	evaluateStrategy("Everything", function(int x, int y, int z) { return true; });
+	printResults("Everything", testStrategy(function(int x, int y, int z) { return true; }));
 
 	{
 		static int hi, vi, sl;
 		for (vi=2; vi<=7; vi++)
 			for (hi=2; hi<=16; hi++)
 				for (sl=0; sl<=hi/2; sl++)
-					evaluateStrategy(format("Galleries[v%d,h%d,s%d]", vi, hi, sl), function(int z, int y, int x) { return y%vi<2 && floorMod(x, hi) == y/vi * sl % hi; });
+					printResults(format("Galleries[v%d,h%d,s%d]", vi, hi, sl), testStrategy(function(int z, int y, int x) { return y%vi<2 && floorMod(x, hi) == y/vi * sl % hi; }));
 	}
 }
 
