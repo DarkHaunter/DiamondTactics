@@ -41,12 +41,8 @@ void main()
 						{
 							seen[id] = true;
 							diamondsSeen++;
-							checkDiamond(x-1, y, z);
-							checkDiamond(x+1, y, z);
-							checkDiamond(x, y-1, z);
-							checkDiamond(x, y+1, z);
-							checkDiamond(x, y, z-1);
-							checkDiamond(x, y, z+1);
+							foreach (v; VECTORS_DIAGONAL)
+								checkDiamond(x+v.x, y+v.y, z+v.z);
 						}
 					}
 

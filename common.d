@@ -86,3 +86,33 @@ int getDiamondAt(int x, int y, int z)
 }
 
 auto floorMod(T)(T a, T b) { auto m = a%b; return m>=0 ? m : m + b; }
+
+// ***********************************************************************
+
+struct Vector { byte x, y, z; }
+
+const Vector[] VECTORS_CARTESIAN = [
+	{-1,  0,  0},
+	{ 1,  0,  0},
+	{ 0, -1,  0},
+	{ 0,  1,  0},
+	{ 0,  0, -1},
+	{ 0,  0,  1},
+];
+
+const Vector[] VECTORS_DIAGONAL_ONLY = [
+	{-1, -1,  0},
+	{-1,  1,  0},
+	{ 1, -1,  0},
+	{ 1,  1,  0},
+	{-1,  0, -1},
+	{-1,  0,  1},
+	{ 1,  0, -1},
+	{ 1,  0,  1},
+	{ 0, -1, -1},
+	{ 0, -1,  1},
+	{ 0,  1, -1},
+	{ 0,  1,  1},
+];
+
+const Vector[] VECTORS_DIAGONAL = VECTORS_CARTESIAN ~ VECTORS_DIAGONAL_ONLY;

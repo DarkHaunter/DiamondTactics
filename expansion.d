@@ -6,32 +6,6 @@ import std.string;
 
 import common;
 
-struct Vector { int x, y, z; }
-
-const Vector[] VECTORS_CARTESIAN = [
-	{-1,  0,  0},
-	{ 1,  0,  0},
-	{ 0, -1,  0},
-	{ 0,  1,  0},
-	{ 0,  0, -1},
-	{ 0,  0,  1},
-];
-
-const Vector[] VECTORS_DIAGONAL = [
-	{-1, -1,  0},
-	{-1,  1,  0},
-	{ 1, -1,  0},
-	{ 1,  1,  0},
-	{-1,  0, -1},
-	{-1,  0,  1},
-	{ 1,  0, -1},
-	{ 1,  0,  1},
-	{ 0, -1, -1},
-	{ 0, -1,  1},
-	{ 0,  1, -1},
-	{ 0,  1,  1},
-];
-
 enum MAX_DISTANCE = 7;
 
 Vector[][MAX_DISTANCE+1] VECTORS_DISTANCE;
@@ -41,9 +15,9 @@ void main()
 	loadData();
 	makeMap();
 
-	foreach (x; -MAX_DISTANCE..MAX_DISTANCE+1)
-		foreach (y; -MAX_DISTANCE..MAX_DISTANCE+1)
-			foreach (z; -MAX_DISTANCE..MAX_DISTANCE+1)
+	foreach (byte x; -MAX_DISTANCE..MAX_DISTANCE+1)
+		foreach (byte y; -MAX_DISTANCE..MAX_DISTANCE+1)
+			foreach (byte z; -MAX_DISTANCE..MAX_DISTANCE+1)
 				if (x!=0 || y!=0 || z!=0)
 					foreach (distance; 1..MAX_DISTANCE+1)
 						if (abs(x) <= distance && abs(y) <= distance && abs(z) <= distance)
@@ -51,7 +25,7 @@ void main()
 
 	const(Vector)[][] vectorLevels = new Vector[][3 + MAX_DISTANCE-1+1];
 	vectorLevels[1] = VECTORS_CARTESIAN;
-	vectorLevels[2] = VECTORS_CARTESIAN ~ VECTORS_DIAGONAL;
+	vectorLevels[2] = VECTORS_DIAGONAL;
 	foreach (distance; 1..MAX_DISTANCE+1)
 		vectorLevels[3 + distance-1] = VECTORS_DISTANCE[distance];
 	
