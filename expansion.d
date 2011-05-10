@@ -32,7 +32,7 @@ const Vector[] VECTORS_DIAGONAL = [
 	{ 0,  1,  1},
 ];
 
-enum MAX_DISTANCE = 6;
+enum MAX_DISTANCE = 7;
 
 Vector[][MAX_DISTANCE+1] VECTORS_DISTANCE;
 
@@ -67,9 +67,13 @@ void main()
 
 	bool[] seen = new bool[diamonds.length];
 	int[] counters = new int[vectorLevels.length];
+	enum MAX_BOUNTY = 1000;
+	int[MAX_BOUNTY][] distribution = new int[MAX_BOUNTY][vectorLevels.length];
+	int maxBounty;
 
-	foreach (ref d; diamonds)
+	foreach (id, ref d; diamonds)
 	{
+		if (id % 100 == 0) { writef("%3d%%\r", id*100/diamonds.length); stdout.flush(); }
 		int last = 0;
 		foreach (level, vectors; vectorLevels)
 		{
@@ -92,10 +96,27 @@ void main()
 			assert(current >= last);
 			if (current != last)
 			    counters[level]++;
+			if (maxBounty < current)
+				maxBounty = current;
+			distribution[level][current]++;
 			last = current;
 		}
 	}
 
-	foreach (i; 1..counters.length)
-		writefln("%6.2f%%  %s", counters[i]*100.0/diamonds.length, vectorNames[i]);
+	foreach (level; 1..counters.length)
+		writefln("%6.2f%%  %s", counters[level]*100.0/diamonds.length, vectorNames[level]);
+
+	writeln();
+	foreach (bounty; 1..maxBounty+1)
+		writef("%5d  ", bounty);
+	writeln();
+	foreach (level; 1..counters.length)
+	{
+		foreach (bounty; 1..maxBounty+1)
+			if (distribution[level][bounty])
+				writef("%5.2f%% ", distribution[level][bounty] * 100.0 / diamonds.length);
+			else
+				write("    -  ");
+		writefln("  %s", vectorNames[level]);
+	}
 }
